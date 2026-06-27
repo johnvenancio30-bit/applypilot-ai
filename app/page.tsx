@@ -10,7 +10,6 @@ import {
   Cloud,
   ClipboardCheck,
   Copy,
-  Database,
   FileCheck2,
   FilePenLine,
   FileText,
@@ -57,11 +56,11 @@ type AnalysisSource = "demo" | "gemini";
 type AuthMode = "signin" | "signup";
 
 const navigation: Array<{ id: Section; label: string; icon: LucideIcon }> = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "analysis", label: "New Analysis", icon: SearchCheck },
-  { id: "results", label: "Results", icon: Gauge },
-  { id: "tracker", label: "Tracker", icon: ClipboardCheck },
-  { id: "account", label: "Account", icon: UserRound },
+  { id: "dashboard", label: "Home", icon: LayoutDashboard },
+  { id: "analysis", label: "Check Resume", icon: SearchCheck },
+  { id: "results", label: "Improvements", icon: Gauge },
+  { id: "tracker", label: "Job Tracker", icon: ClipboardCheck },
+  { id: "account", label: "Sign In", icon: UserRound },
 ];
 
 export default function Home() {
@@ -75,7 +74,7 @@ export default function Home() {
     createDemoAnalysis("Northstar Labs", "Frontend Developer"),
   );
   const [analysisSource, setAnalysisSource] = useState<AnalysisSource>("demo");
-  const [analysisNotice, setAnalysisNotice] = useState("Add GEMINI_API_KEY to enable live Gemini analysis.");
+  const [analysisNotice, setAnalysisNotice] = useState("Paste a resume and job post to get tailored suggestions.");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [approvedBullets, setApprovedBullets] = useState<number[]>([0]);
   const [trackerItems, setTrackerItems] = useState(baseTracker);
@@ -89,8 +88,8 @@ export default function Home() {
   const [isTrackerLoading, setIsTrackerLoading] = useState(false);
   const [persistenceNotice, setPersistenceNotice] = useState(
     isSupabaseConfigured
-      ? "Sign in to save applications to Supabase."
-      : "Local mode active. Add Supabase env vars to enable cloud persistence.",
+      ? "Sign in to save your jobs across devices."
+      : "Demo mode: saved jobs stay in this browser.",
   );
 
   const approvedCount = approvedBullets.length;
@@ -141,8 +140,8 @@ export default function Home() {
       setTrackerItems(baseTracker);
       setPersistenceNotice(
         isSupabaseConfigured
-          ? "Sign in to save applications to Supabase."
-          : "Local mode active. Add Supabase env vars to enable cloud persistence.",
+          ? "Sign in to save your jobs across devices."
+          : "Demo mode: saved jobs stay in this browser.",
       );
       return;
     }
@@ -163,7 +162,7 @@ export default function Home() {
       .order("updated_at", { ascending: false });
 
     if (error) {
-      setPersistenceNotice("Supabase is connected, but the application table is not ready yet.");
+      setPersistenceNotice("Cloud saving is connected, but the saved jobs list is not ready yet.");
       setIsTrackerLoading(false);
       return;
     }
@@ -172,8 +171,8 @@ export default function Home() {
     setTrackerItems(savedItems.length ? savedItems : baseTracker);
     setPersistenceNotice(
       savedItems.length
-        ? `${savedItems.length} saved application${savedItems.length === 1 ? "" : "s"} loaded from Supabase.`
-        : "Signed in. Save an application to persist it to Supabase.",
+        ? `${savedItems.length} saved job${savedItems.length === 1 ? "" : "s"} loaded.`
+        : "Signed in. Save a job to keep it in your tracker.",
     );
     setIsTrackerLoading(false);
   };
@@ -216,7 +215,7 @@ export default function Home() {
     } catch {
       setAnalysisResult(createDemoAnalysis(company, role));
       setAnalysisSource("demo");
-      setAnalysisNotice("Local fallback shown because the analysis request failed.");
+      setAnalysisNotice("Demo suggestions are shown because the live review could not finish.");
       setApprovedBullets([]);
       setSavedCurrentJob(false);
       setActiveSection("results");
@@ -229,7 +228,7 @@ export default function Home() {
     event.preventDefault();
 
     if (!supabase) {
-      setAuthMessage("Supabase is not configured yet. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+      setAuthMessage("Cloud saving is not turned on for this demo yet.");
       return;
     }
 
@@ -254,8 +253,8 @@ export default function Home() {
     } else {
       setAuthMessage(
         authMode === "signup"
-          ? "Account created. Check email confirmation settings in Supabase if sign-in is blocked."
-          : "Signed in. Tracker persistence is enabled.",
+          ? "Account created. You can now save jobs to your tracker."
+          : "Signed in. Saved jobs will stay available across devices.",
       );
       setAuthPassword("");
     }
@@ -272,7 +271,7 @@ export default function Home() {
     await supabase.auth.signOut();
     setAuthUser(null);
     setAuthPassword("");
-    setAuthMessage("Signed out. Local demo tracker is shown.");
+    setAuthMessage("Signed out. Demo tracker is shown.");
     setIsAuthLoading(false);
   };
 
@@ -305,11 +304,11 @@ export default function Home() {
         .single();
 
       if (error) {
-        setPersistenceNotice("Could not save to Supabase. Check that the Phase 4 SQL schema has been run.");
+        setPersistenceNotice("Could not save online. Your local tracker is still available.");
       } else {
         const savedRecord = data as ApplicationRecord;
         setTrackerItems((items) => [applicationRecordToTrackerItem(savedRecord), ...items]);
-        setPersistenceNotice("Application saved to Supabase.");
+        setPersistenceNotice("Job saved to your online tracker.");
         setSavedCurrentJob(true);
         setActiveSection("tracker");
         return;
@@ -317,8 +316,8 @@ export default function Home() {
     } else {
       setPersistenceNotice(
         isSupabaseConfigured
-          ? "Saved locally. Sign in to persist applications to Supabase."
-          : "Saved locally. Configure Supabase env vars for cloud persistence.",
+          ? "Saved locally. Sign in to keep jobs across devices."
+          : "Saved locally in demo mode.",
       );
     }
 
@@ -335,8 +334,8 @@ export default function Home() {
     if (!supabase || !authUser || !target.id) {
       setPersistenceNotice(
         isSupabaseConfigured
-          ? "Status updated locally. Sign in and save the application to sync changes."
-          : "Status updated locally. Configure Supabase env vars for cloud persistence.",
+          ? "Status updated locally. Sign in to keep this change across devices."
+          : "Status updated locally in demo mode.",
       );
       return;
     }
@@ -349,8 +348,8 @@ export default function Home() {
 
     setPersistenceNotice(
       error
-        ? "Status updated locally, but Supabase sync failed."
-        : `Status synced to Supabase: ${status}.`,
+        ? "Status updated locally, but online save failed."
+        : `Status saved: ${status}.`,
     );
   };
 
@@ -363,14 +362,14 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       <div className="mx-auto grid min-h-screen w-full max-w-[1440px] grid-cols-1 lg:grid-cols-[264px_minmax(0,1fr)]">
-        <aside className="border-b border-line bg-white/92 px-4 py-4 lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
+        <aside className="border-b border-line bg-white/85 px-4 py-4 backdrop-blur lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-ink text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-ink via-marine to-clay text-white shadow-lift">
               <Sparkles size={20} aria-hidden="true" />
             </div>
             <div className="min-w-0">
               <p className="truncate text-base font-semibold text-ink">ApplyPilot AI</p>
-              <p className="truncate text-sm text-slate-500">Career agent workspace</p>
+              <p className="truncate text-sm text-slate-500">Resume match helper</p>
             </div>
           </div>
 
@@ -386,8 +385,8 @@ export default function Home() {
                   onClick={() => setActiveSection(item.id)}
                   className={`flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
                     isActive
-                      ? "bg-ink text-white shadow-panel"
-                      : "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-ink"
+                      ? "bg-marine text-white shadow-lift"
+                      : "bg-transparent text-slate-600 hover:bg-white hover:text-ink hover:shadow-sm"
                   }`}
                 >
                   <Icon size={18} aria-hidden="true" />
@@ -397,16 +396,16 @@ export default function Home() {
             })}
           </nav>
 
-          <div className="mt-5 hidden rounded-lg border border-line bg-paper p-4 lg:block">
+          <div className="mt-5 hidden rounded-lg border border-line bg-white/70 p-4 shadow-sm lg:block">
             <div className="flex items-center gap-2 text-sm font-semibold text-ink">
               <ShieldCheck size={17} aria-hidden="true" />
-              Phase 4
+              Save progress
             </div>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Supabase auth, persistence, and tracker status sync are active.
+              Sign in when you want your saved jobs available across devices.
             </p>
             <div className="mt-3 rounded-md bg-white px-3 py-2 text-xs font-semibold text-slate-600">
-              {authUser ? "Supabase session active" : "Local tracker mode"}
+              {authUser ? "Signed in" : "Demo mode"}
             </div>
           </div>
         </aside>
@@ -415,21 +414,21 @@ export default function Home() {
           <header className="mb-5 flex flex-col gap-4 border-b border-line pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-                <span>Portfolio MVP</span>
+                <span>Resume helper</span>
                 <ChevronRight size={15} aria-hidden="true" />
                 <span className="font-medium text-ink">{sectionTitle(activeSection)}</span>
               </div>
               <h1 className="mt-2 text-2xl font-semibold text-ink sm:text-3xl">
-                Agentic job application assistant
+                AI Resume Match Helper
               </h1>
             </div>
             <button
               type="button"
               onClick={() => setActiveSection("analysis")}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-marine px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0d5557]"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-marine to-signal px-4 py-2 text-sm font-semibold text-white shadow-lift transition hover:brightness-105"
             >
               <Plus size={18} aria-hidden="true" />
-              New analysis
+              Check a resume
             </button>
           </header>
 
@@ -456,7 +455,6 @@ export default function Home() {
               setResumeText={setResumeText}
               setJobText={setJobText}
               agentSteps={workflowSteps}
-              toolRuns={analysisResult.toolRuns}
               isAnalyzing={isAnalyzing}
               onRun={runAnalysis}
             />
@@ -533,17 +531,17 @@ function Dashboard({
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Metric icon={Gauge} label="Latest match" value={`${analysisResult.matchScore}%`} detail="Ready for tailoring" tone="green" />
-        <Metric icon={Target} label="Keyword gaps" value={analysisResult.missingKeywords.length.toString()} detail="High-value additions" tone="blue" />
-        <Metric icon={FilePenLine} label="Approved bullets" value={`${approvedCount}/${analysisResult.bulletSuggestions.length}`} detail="Ready to save" tone="clay" />
-        <Metric icon={Workflow} label="Approval gates" value={`${approvedGateCount}/${approvalGates.length}`} detail={`${trackerCount} tracked jobs`} tone="ink" />
+        <Metric icon={Gauge} label="Resume match" value={`${analysisResult.matchScore}%`} detail="Fit for this role" tone="green" />
+        <Metric icon={Target} label="Keywords to add" value={analysisResult.missingKeywords.length.toString()} detail="Found in the job post" tone="blue" />
+        <Metric icon={FilePenLine} label="Resume fixes" value={`${approvedCount}/${analysisResult.bulletSuggestions.length}`} detail="Approved by you" tone="clay" />
+        <Metric icon={Workflow} label="Saved jobs" value={trackerCount.toString()} detail={`${approvedGateCount}/${approvalGates.length} steps ready`} tone="ink" />
       </div>
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
         <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase text-marine">Current workflow</p>
+              <p className="text-sm font-semibold uppercase text-marine">Next best step</p>
               <h2 className="mt-2 text-xl font-semibold text-ink">Northstar Labs application</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                 {analysisResult.summary}
@@ -554,7 +552,7 @@ function Dashboard({
               onClick={onStart}
               className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-semibold text-ink transition hover:border-marine hover:text-marine"
             >
-              Continue
+              Check resume
               <ArrowRight size={17} aria-hidden="true" />
             </button>
           </div>
@@ -569,17 +567,17 @@ function Dashboard({
         <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold uppercase text-clay">Portfolio value</p>
-              <h2 className="mt-2 text-xl font-semibold text-ink">What this proves</h2>
+              <p className="text-sm font-semibold uppercase text-clay">How it helps</p>
+              <h2 className="mt-2 text-xl font-semibold text-ink">A calmer way to apply</h2>
             </div>
             <BarChart3 className="text-clay" size={24} aria-hidden="true" />
           </div>
           <div className="mt-5 grid gap-3">
             {[
-              "Structured AI workflow instead of a generic chatbot",
-              "Approval gates before saved outputs",
-              "Tool-result evidence from the AI analysis",
-              "Dashboard, results, and tracker product flow",
+              "See if your resume fits the job before applying.",
+              "Know exactly which keywords and skills to add.",
+              "Approve every resume change before saving it.",
+              "Keep each job in one simple tracker.",
             ].map((item) => (
               <div key={item} className="flex items-start gap-3 rounded-lg border border-line bg-paper p-3">
                 <Check className="mt-0.5 shrink-0 text-leaf" size={17} aria-hidden="true" />
@@ -592,7 +590,7 @@ function Dashboard({
             onClick={onTracker}
             className="mt-5 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
-            Open tracker
+            View saved jobs
             <ArrowRight size={17} aria-hidden="true" />
           </button>
         </section>
@@ -611,7 +609,6 @@ function AnalysisForm({
   setResumeText,
   setJobText,
   agentSteps,
-  toolRuns,
   isAnalyzing,
   onRun,
 }: {
@@ -624,7 +621,6 @@ function AnalysisForm({
   setResumeText: (value: string) => void;
   setJobText: (value: string) => void;
   agentSteps: AgentStep[];
-  toolRuns: ToolRun[];
   isAnalyzing: boolean;
   onRun: () => Promise<void>;
 }) {
@@ -632,13 +628,13 @@ function AnalysisForm({
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-marine text-white">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-marine to-signal text-white shadow-lift">
             <FileText size={19} aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-ink">New job analysis</h2>
+            <h2 className="text-xl font-semibold text-ink">Check a resume</h2>
             <p className="mt-1 text-sm leading-6 text-slate-600">
-              Paste the resume and job description to prepare the agent comparison.
+              Paste your resume and the job post. ApplyPilot will show what matches, what is missing, and what to improve.
             </p>
           </div>
         </div>
@@ -666,15 +662,15 @@ function AnalysisForm({
         <div className="mt-5 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <LoaderCircle className={isAnalyzing ? "animate-spin" : ""} size={17} aria-hidden="true" />
-            {isAnalyzing ? "Analyzing resume and job description." : "Gemini runs when GEMINI_API_KEY is configured."}
+            {isAnalyzing ? "Checking your resume against the job post." : "Ready when your resume and job post are pasted."}
           </div>
           <button
             type="button"
             onClick={onRun}
             disabled={isAnalyzing}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-marine px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0d5557]"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-marine to-signal px-4 py-2 text-sm font-semibold text-white shadow-lift transition hover:brightness-105"
           >
-            {isAnalyzing ? "Running analysis" : "Run analysis"}
+            {isAnalyzing ? "Checking resume" : "Check my resume"}
             {isAnalyzing ? (
               <LoaderCircle className="animate-spin" size={18} aria-hidden="true" />
             ) : (
@@ -685,23 +681,21 @@ function AnalysisForm({
       </section>
 
       <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
-        <p className="text-sm font-semibold uppercase text-signal">Agent preview</p>
-        <h2 className="mt-2 text-xl font-semibold text-ink">Plan and tools</h2>
+        <p className="text-sm font-semibold uppercase text-signal">What happens next</p>
+        <h2 className="mt-2 text-xl font-semibold text-ink">A simple review path</h2>
         <div className="mt-5 grid gap-3">
           {agentSteps.map((step) => (
             <AgentStepRow key={step.label} step={step} />
           ))}
         </div>
-        <div className="mt-5 border-t border-line pt-5">
+        <div className="mt-5 rounded-lg border border-line bg-paper p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-ink">
-            <Bot size={17} aria-hidden="true" />
-            Tool outputs
+            <Sparkles size={17} aria-hidden="true" />
+            You stay in control
           </div>
-          <div className="mt-3 grid gap-3">
-            {toolRuns.map((tool) => (
-              <ToolRunRow key={tool.name} tool={tool} />
-            ))}
-          </div>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            Suggestions are shown first. Nothing is saved to the tracker until you approve at least one resume improvement.
+          </p>
         </div>
       </section>
     </div>
@@ -748,7 +742,7 @@ function ResultsView({
             >
               <div>
                 <p className="text-4xl font-semibold text-ink">{analysisResult.matchScore}%</p>
-                <p className="mt-1 text-sm text-slate-500">Match score</p>
+                <p className="mt-1 text-sm text-slate-500">Resume match</p>
               </div>
             </div>
             <h2 className="mt-5 text-xl font-semibold text-ink">{role || "Target Role"}</h2>
@@ -756,9 +750,9 @@ function ResultsView({
           </div>
 
           <div className="mt-6 grid gap-3">
-            <ResultPill label="Strong skills" value={analysisResult.matchingSkills.length.toString()} tone="green" />
-            <ResultPill label="Keyword gaps" value={analysisResult.missingKeywords.length.toString()} tone="blue" />
-            <ResultPill label="Approved bullets" value={`${approvedBullets.length}/${analysisResult.bulletSuggestions.length}`} tone="clay" />
+            <ResultPill label="Skills that match" value={analysisResult.matchingSkills.length.toString()} tone="green" />
+            <ResultPill label="Keywords to add" value={analysisResult.missingKeywords.length.toString()} tone="blue" />
+            <ResultPill label="Selected fixes" value={`${approvedBullets.length}/${analysisResult.bulletSuggestions.length}`} tone="clay" />
           </div>
 
           <button
@@ -767,12 +761,12 @@ function ResultsView({
             disabled={!canSave}
             className={`mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
               canSave
-                ? "bg-ink text-white hover:bg-slate-800"
+                ? "bg-gradient-to-r from-ink to-marine text-white shadow-lift hover:brightness-105"
                 : "cursor-not-allowed bg-slate-200 text-slate-500"
             }`}
           >
             <Save size={18} aria-hidden="true" />
-            {savedCurrentJob ? "Open saved job" : canSave ? "Save to tracker" : "Approve a bullet first"}
+            {savedCurrentJob ? "Open saved job" : canSave ? "Save job" : "Select a fix first"}
           </button>
         </section>
 
@@ -780,9 +774,9 @@ function ResultsView({
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase text-marine">
-                {analysisSource === "gemini" ? "Gemini result" : "Demo result"}
+                {analysisSource === "gemini" ? "Live review" : "Demo review"}
               </p>
-              <h2 className="mt-2 text-xl font-semibold text-ink">Resume tailoring plan</h2>
+              <h2 className="mt-2 text-xl font-semibold text-ink">Your improvement plan</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
                 {analysisResult.summary}
               </p>
@@ -801,9 +795,9 @@ function ResultsView({
           </div>
 
           <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <InsightList title="Matching skills" items={analysisResult.matchingSkills} icon={Check} tone="green" />
-            <InsightList title="Missing keywords" items={analysisResult.missingKeywords} icon={Target} tone="blue" />
-            <InsightList title="Skill gaps" items={analysisResult.skillGaps} icon={ListChecks} tone="clay" />
+            <InsightList title="Skills that match" items={analysisResult.matchingSkills} icon={Check} tone="green" />
+            <InsightList title="Keywords to add" items={analysisResult.missingKeywords} icon={Target} tone="blue" />
+            <InsightList title="Gaps to close" items={analysisResult.skillGaps} icon={ListChecks} tone="clay" />
           </div>
         </section>
       </div>
@@ -818,11 +812,11 @@ function ResultsView({
       <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase text-clay">Human approval</p>
-            <h2 className="mt-2 text-xl font-semibold text-ink">Resume bullet improvements</h2>
+            <p className="text-sm font-semibold uppercase text-clay">Choose what to use</p>
+            <h2 className="mt-2 text-xl font-semibold text-ink">Resume wording improvements</h2>
           </div>
           <div className="rounded-lg border border-line bg-paper px-3 py-2 text-sm font-semibold text-ink">
-            {approvedBullets.length} approved
+            {approvedBullets.length} selected
           </div>
         </div>
 
@@ -833,11 +827,11 @@ function ResultsView({
             return (
               <article key={item.before} className="grid gap-3 rounded-lg border border-line bg-white p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_150px]">
                 <div>
-                  <p className="text-xs font-semibold uppercase text-slate-500">Before</p>
+                  <p className="text-xs font-semibold uppercase text-slate-500">Current wording</p>
                   <p className="mt-2 text-sm leading-6 text-slate-700">{item.before}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase text-marine">Suggested</p>
+                  <p className="text-xs font-semibold uppercase text-marine">Stronger wording</p>
                   <p className="mt-2 text-sm leading-6 text-slate-800">{item.after}</p>
                 </div>
                 <button
@@ -850,7 +844,7 @@ function ResultsView({
                   }`}
                 >
                   <Check size={17} aria-hidden="true" />
-                  {isApproved ? "Approved" : "Approve"}
+                  {isApproved ? "Selected" : "Use this fix"}
                 </button>
               </article>
             );
@@ -891,12 +885,12 @@ function AgentCommandCenter({
     <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase text-marine">Agent command center</p>
-          <h2 className="mt-2 text-xl font-semibold text-ink">Plan, tools, and approval gates</h2>
+          <p className="text-sm font-semibold uppercase text-marine">Review checklist</p>
+          <h2 className="mt-2 text-xl font-semibold text-ink">What was checked before showing suggestions</h2>
         </div>
         <div className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line bg-paper px-3 py-2 text-sm font-semibold text-ink">
           <Workflow size={17} aria-hidden="true" />
-          Human-in-the-loop
+          You approve changes
         </div>
       </div>
 
@@ -904,7 +898,7 @@ function AgentCommandCenter({
         <div className="rounded-lg border border-line bg-paper p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-ink">
             <ListChecks size={17} aria-hidden="true" />
-            Execution plan
+            Review steps
           </div>
           <div className="mt-3 grid gap-3">
             {steps.map((step) => (
@@ -916,7 +910,7 @@ function AgentCommandCenter({
         <div className="rounded-lg border border-line bg-paper p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-ink">
             <Bot size={17} aria-hidden="true" />
-            Tool results
+            Resume checks
           </div>
           <div className="mt-3 grid gap-3">
             {tools.map((tool) => (
@@ -928,7 +922,7 @@ function AgentCommandCenter({
         <div className="rounded-lg border border-line bg-paper p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-ink">
             <FileCheck2 size={17} aria-hidden="true" />
-            Approval queue
+            Before you save
           </div>
           <div className="mt-3 grid gap-3">
             {gates.map((gate) => (
@@ -937,12 +931,12 @@ function AgentCommandCenter({
           </div>
 
           <div className="mt-4 border-t border-line pt-4">
-            <p className="text-sm font-semibold text-ink">Next actions</p>
+            <p className="text-sm font-semibold text-ink">Next steps</p>
             <div className="mt-2 grid gap-2">
               {nextActions.slice(0, 4).map((action) => (
                 <div key={action} className="flex items-start gap-2 text-sm leading-6 text-slate-700">
                   <CircleDot className="mt-1 shrink-0 text-signal" size={14} aria-hidden="true" />
-                  <span>{action}</span>
+                  <span>{friendlyNextAction(action)}</span>
                 </div>
               ))}
             </div>
@@ -990,10 +984,10 @@ function AccountView({
             <UserRound size={19} aria-hidden="true" />
           </div>
           <div>
-            <p className="text-sm font-semibold uppercase text-marine">Phase 4</p>
-            <h2 className="mt-2 text-xl font-semibold text-ink">Supabase account</h2>
+            <p className="text-sm font-semibold uppercase text-marine">Save your progress</p>
+            <h2 className="mt-2 text-xl font-semibold text-ink">Sign in to keep your job tracker</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-              Sign in to persist application records behind Supabase row-level security.
+              Create a simple account when you want saved jobs and status updates to follow you across devices.
             </p>
           </div>
         </div>
@@ -1001,7 +995,7 @@ function AccountView({
         <div className="mt-5 rounded-lg border border-line bg-paper p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-ink">
             <Cloud size={17} aria-hidden="true" />
-            Persistence status
+            Save status
           </div>
           <p className="mt-2 text-sm leading-6 text-slate-600">{persistenceNotice}</p>
         </div>
@@ -1051,7 +1045,7 @@ function AccountView({
               disabled={isAuthLoading || !isSupabaseReady}
               className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition sm:w-fit ${
                 isSupabaseReady
-                  ? "bg-marine text-white hover:bg-[#0d5557]"
+                  ? "bg-gradient-to-r from-marine to-signal text-white shadow-lift hover:brightness-105"
                   : "cursor-not-allowed bg-slate-200 text-slate-500"
               }`}
             >
@@ -1074,15 +1068,15 @@ function AccountView({
 
       <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
         <div className="flex items-center gap-2 text-sm font-semibold text-ink">
-          <Database size={17} aria-hidden="true" />
-          Setup checklist
+          <ShieldCheck size={17} aria-hidden="true" />
+          Why sign in
         </div>
         <div className="mt-4 grid gap-3">
           {[
-            "Create a Supabase project.",
-            "Run supabase/schema.sql in the SQL editor.",
-            "Copy project URL and anon key into .env.local.",
-            "Restart the Next.js server.",
+            "Save job matches after you review them.",
+            "Update each job from draft to applied or follow up.",
+            "Keep your tracker available when you switch devices.",
+            "Use demo mode if you only want to try the app first.",
           ].map((item) => (
             <div key={item} className="flex items-start gap-3 rounded-lg border border-line bg-paper p-3">
               <Check className="mt-0.5 shrink-0 text-leaf" size={17} aria-hidden="true" />
@@ -1114,8 +1108,8 @@ function TrackerView({
     <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase text-marine">Application tracker</p>
-          <h2 className="mt-2 text-xl font-semibold text-ink">Active opportunities</h2>
+          <p className="text-sm font-semibold uppercase text-marine">Job tracker</p>
+          <h2 className="mt-2 text-xl font-semibold text-ink">Your saved jobs</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">{persistenceNotice}</p>
         </div>
         <button
@@ -1130,7 +1124,7 @@ function TrackerView({
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <span className="inline-flex min-h-8 items-center gap-2 rounded-lg border border-line bg-paper px-3 py-1 text-xs font-semibold text-slate-600">
           <Cloud size={14} aria-hidden="true" />
-          {authUser ? "Supabase sync" : "Local demo"}
+          {authUser ? "Saved online" : "Demo tracker"}
         </span>
         {isTrackerLoading && (
           <span className="inline-flex min-h-8 items-center gap-2 rounded-lg border border-line bg-paper px-3 py-1 text-xs font-semibold text-slate-600">
@@ -1170,7 +1164,7 @@ function TrackerView({
                     </div>
                     <div className="mt-3 flex items-center justify-between gap-2 text-xs text-slate-500">
                       <span>{item.date}</span>
-                      <span>Match saved</span>
+                      <span>Resume match</span>
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-2">
                       {statuses.map((option) => (
@@ -1227,13 +1221,13 @@ function Metric({
 }) {
   const toneClass = {
     green: "bg-emerald-50 text-leaf",
-    blue: "bg-blue-50 text-signal",
+    blue: "bg-indigo-50 text-signal",
     clay: "bg-orange-50 text-clay",
-    ink: "bg-slate-100 text-ink",
+    ink: "bg-rose-50 text-berry",
   }[tone];
 
   return (
-    <section className="rounded-lg border border-line bg-white p-4 shadow-panel">
+    <section className="rounded-lg border border-white/80 bg-white/92 p-4 shadow-panel transition hover:-translate-y-0.5 hover:shadow-lift">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-medium text-slate-500">{label}</p>
         <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${toneClass}`}>
@@ -1254,16 +1248,16 @@ function AgentStepRow({ step }: { step: AgentStep }) {
   }[step.status];
 
   return (
-    <div className="grid grid-cols-[34px_minmax(0,1fr)_78px] items-start gap-3 rounded-lg border border-line bg-white p-3">
+    <div className="grid grid-cols-[34px_minmax(0,1fr)_78px] items-start gap-3 rounded-lg border border-line bg-white/95 p-3">
       <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${statusStyles}`}>
         {step.status === "Done" ? <Check size={16} aria-hidden="true" /> : <History size={16} aria-hidden="true" />}
       </div>
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-ink">{step.label}</p>
+        <p className="text-sm font-semibold text-ink">{friendlyStepLabel(step.label)}</p>
         <p className="mt-1 text-sm leading-5 text-slate-600">{step.detail}</p>
       </div>
       <span className="rounded-md bg-paper px-2 py-1 text-center text-xs font-semibold text-slate-600">
-        {step.status}
+        {friendlyStepStatus(step.status)}
       </span>
     </div>
   );
@@ -1277,14 +1271,14 @@ function ToolRunRow({ tool }: { tool: ToolRun }) {
   }[tool.status];
 
   return (
-    <div className="rounded-lg border border-line bg-white p-3">
+    <div className="rounded-lg border border-line bg-white/95 p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-ink">{formatToolName(tool.name)}</p>
           <p className="mt-1 text-sm leading-5 text-slate-600">{tool.output}</p>
         </div>
         <span className={`shrink-0 rounded-md px-2 py-1 text-xs font-semibold ${statusStyles}`}>
-          {tool.status}
+          {friendlyStepStatus(tool.status)}
         </span>
       </div>
     </div>
@@ -1299,14 +1293,14 @@ function ApprovalGateRow({ gate }: { gate: ApprovalGate }) {
   }[gate.status];
 
   return (
-    <div className="rounded-lg border border-line bg-white p-3">
+    <div className="rounded-lg border border-line bg-white/95 p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-ink">{gate.label}</p>
+          <p className="text-sm font-semibold text-ink">{friendlyGateLabel(gate.label)}</p>
           <p className="mt-1 text-sm leading-5 text-slate-600">{gate.detail}</p>
         </div>
         <span className={`shrink-0 rounded-md px-2 py-1 text-xs font-semibold ${statusStyles}`}>
-          {gate.status}
+          {friendlyGateStatus(gate.status)}
         </span>
       </div>
     </div>
@@ -1331,7 +1325,7 @@ function InsightList({
   }[tone];
 
   return (
-    <div className="rounded-lg border border-line bg-paper p-4">
+    <div className="rounded-lg border border-line bg-white/70 p-4">
       <h3 className="text-sm font-semibold text-ink">{title}</h3>
       <div className="mt-3 grid gap-2">
         {items.map((item) => (
@@ -1363,7 +1357,7 @@ function LabelledInput({
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-11 rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-marine focus:ring-2 focus:ring-marine/20"
+        className="min-h-11 rounded-lg border border-line bg-white/95 px-3 py-2 text-sm text-ink outline-none transition focus:border-marine focus:ring-2 focus:ring-marine/20"
       />
     </label>
   );
@@ -1387,7 +1381,7 @@ function LabelledTextarea({
         value={value}
         rows={rows}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-[320px] rounded-lg border border-line bg-white px-3 py-3 text-sm leading-6 text-ink outline-none transition focus:border-marine focus:ring-2 focus:ring-marine/20"
+        className="min-h-[320px] rounded-lg border border-line bg-white/95 px-3 py-3 text-sm leading-6 text-ink outline-none transition focus:border-marine focus:ring-2 focus:ring-marine/20"
       />
     </label>
   );
@@ -1409,7 +1403,7 @@ function ResultPill({
   }[tone];
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-paper px-3 py-2">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-white/75 px-3 py-2">
       <span className="text-sm text-slate-600">{label}</span>
       <span className={`text-sm font-semibold ${toneClass}`}>{value}</span>
     </div>
@@ -1430,7 +1424,7 @@ function createWorkflowSteps(
         status: approvedCount > 0 ? "Done" : "Ready",
         detail:
           approvedCount > 0
-            ? `${approvedCount} bullet rewrite${approvedCount === 1 ? "" : "s"} approved for use.`
+            ? `${approvedCount} stronger line${approvedCount === 1 ? "" : "s"} selected for your resume.`
             : step.detail,
       } satisfies AgentStep;
     }
@@ -1441,8 +1435,8 @@ function createWorkflowSteps(
         status: approvedCount > 0 ? "Ready" : "Waiting",
         detail:
           approvedCount > 0
-            ? "Cover letter opening is ready for review after resume approval."
-            : "Queued until at least one resume bullet is approved.",
+            ? "Cover letter opening is ready to review and copy."
+            : "Pick at least one resume fix first.",
       } satisfies AgentStep;
     }
 
@@ -1451,10 +1445,10 @@ function createWorkflowSteps(
         ...step,
         status: savedCurrentJob ? "Done" : approvedCount > 0 ? "Ready" : "Waiting",
         detail: savedCurrentJob
-          ? "Application saved to the tracker."
+          ? "Job saved to the tracker."
           : approvedCount > 0
             ? "Ready to save after final review."
-            : "Waiting for user approval before tracker save.",
+            : "Pick a resume fix before saving this job.",
       } satisfies AgentStep;
     }
 
@@ -1471,10 +1465,10 @@ function createWorkflowSteps(
       label: "Save application",
       status: savedCurrentJob ? "Done" : approvedCount > 0 ? "Ready" : "Waiting",
       detail: savedCurrentJob
-        ? "Application saved to the tracker."
+        ? "Job saved to the tracker."
         : approvedCount > 0
           ? "Ready to save after final review."
-          : "Waiting for user approval before tracker save.",
+          : "Pick a resume fix before saving this job.",
     });
   }
 
@@ -1494,8 +1488,8 @@ function createWorkflowGates(
       status: approvedCount > 0 ? "Approved" : "Ready",
       detail:
         approvedCount > 0
-          ? `${approvedCount} rewrite${approvedCount === 1 ? "" : "s"} approved.`
-          : source[0]?.detail || "Approve the strongest bullet rewrites before saving.",
+          ? `${approvedCount} stronger line${approvedCount === 1 ? "" : "s"} selected.`
+          : source[0]?.detail || "Pick the strongest resume wording before saving.",
     },
     {
       label: source[1]?.label || "Cover letter opening",
@@ -1503,21 +1497,39 @@ function createWorkflowGates(
       detail:
         approvedCount > 0
           ? "Opening paragraph is ready for review and copy."
-          : source[1]?.detail || "Review after at least one resume bullet is approved.",
+          : source[1]?.detail || "Review after you select at least one resume fix.",
     },
     {
       label: source[2]?.label || "Tracker save",
       status: savedCurrentJob ? "Approved" : approvedCount > 0 ? "Ready" : "Waiting",
       detail: savedCurrentJob
-        ? "Application has been handed off to the tracker."
+        ? "Job is saved in the tracker."
         : approvedCount > 0
           ? "Ready to save to the tracker."
-          : source[2]?.detail || "Save only after the tailored application is ready.",
+          : source[2]?.detail || "Save after the resume fixes look right.",
     },
   ];
 }
 
 function formatToolName(name: string) {
+  const normalized = name.toLowerCase();
+
+  if (normalized.includes("resume")) {
+    return "Resume details";
+  }
+
+  if (normalized.includes("job") || normalized.includes("requirement")) {
+    return "Job post keywords";
+  }
+
+  if (normalized.includes("match") || normalized.includes("score")) {
+    return "Resume match";
+  }
+
+  if (normalized.includes("bullet") || normalized.includes("rewrite")) {
+    return "Wording ideas";
+  }
+
   return name
     .split(/[_\s-]+/)
     .filter(Boolean)
@@ -1525,15 +1537,86 @@ function formatToolName(name: string) {
     .join(" ");
 }
 
+function friendlyStepLabel(label: string) {
+  const normalized = label.toLowerCase();
+
+  if (normalized.includes("read") && normalized.includes("resume")) {
+    return "Read resume";
+  }
+
+  if (normalized.includes("analyze") || normalized.includes("job")) {
+    return "Read job post";
+  }
+
+  if (normalized.includes("compare") || normalized.includes("fit")) {
+    return "Check match";
+  }
+
+  if (normalized.includes("rewrite") || normalized.includes("bullet")) {
+    return "Improve wording";
+  }
+
+  if (normalized.includes("cover")) {
+    return "Draft cover letter";
+  }
+
+  if (normalized.includes("save") || normalized.includes("track")) {
+    return "Save job";
+  }
+
+  return label;
+}
+
+function friendlyGateLabel(label: string) {
+  const normalized = label.toLowerCase();
+
+  if (normalized.includes("bullet") || normalized.includes("resume")) {
+    return "Resume fixes";
+  }
+
+  if (normalized.includes("cover")) {
+    return "Cover letter";
+  }
+
+  if (normalized.includes("tracker") || normalized.includes("save")) {
+    return "Save job";
+  }
+
+  return label;
+}
+
+function friendlyStepStatus(status: AgentStep["status"]) {
+  return status === "Waiting" ? "Later" : status;
+}
+
+function friendlyGateStatus(status: ApprovalGate["status"]) {
+  if (status === "Approved") {
+    return "Selected";
+  }
+
+  return status === "Waiting" ? "Later" : status;
+}
+
+function friendlyNextAction(action: string) {
+  return action
+    .replace(/Approve the strongest rewritten bullets?/i, "Select the strongest resume fixes")
+    .replace(/Approve the strongest bullet rewrites?/i, "Select the strongest resume fixes")
+    .replace(/Add measurable impact where possible/i, "Add measurable impact where you can")
+    .replace(/Save the tailored application to the tracker/i, "Save this job to your tracker")
+    .replace(/Save the tailored application/i, "Save this job");
+}
+
 function sectionTitle(section: Section) {
   switch (section) {
     case "dashboard":
-      return "Dashboard";
+      return "Home";
     case "analysis":
-      return "New Analysis";
+      return "Check Resume";
     case "results":
-      return "Results";
+      return "Improvements";
     case "tracker":
-      return "Tracker";
+      return "Job Tracker";
+    case "account":
+      return "Sign In";
   }
 }

@@ -4,7 +4,7 @@
 
 :root {
   color-scheme: light;
-  --background: #f6f7f9;
+  --background: #f7f3ee;
   --foreground: #172033;
 }
 
@@ -19,7 +19,8 @@ html {
 body {
   margin: 0;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(246, 247, 249, 0.96) 48%),
+    linear-gradient(115deg, rgba(15, 118, 110, 0.08), rgba(242, 184, 75, 0.1) 48%, rgba(168, 85, 106, 0.06)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(247, 243, 238, 0.98) 52%),
     var(--background);
   color: var(--foreground);
   font-family:
@@ -46,5 +47,5 @@ textarea {
 .score-ring {
   background:
     radial-gradient(circle at center, #ffffff 0 58%, transparent 59%),
-    conic-gradient(#2f855a 0 76%, #dfe4ea 76% 100%);
+    conic-gradient(#28885e 0 76%, #e3ded6 76% 100%);
 }
